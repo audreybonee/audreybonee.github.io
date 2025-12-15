@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A technical blog post explaining how the I.I.D. assumption breaks down in production machine learning systems and why monitoring distribution shift matters." />
+  <title>The Model That Cried 200 OK</title>
+
+  <!-- MathJax for LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7f7f4;
+      --paper: #ffffff;
+      --text: #1f2933;
+      --muted: #5f6c7b;
+      --heading: #111827;
+      --accent: #1f6feb;
+      --accent-soft: #e8f1ff;
+      --border: #e5e7eb;
+      --code-bg: #0f172a;
+      --code-text: #e5e7eb;
+      --quote-bg: #f1f5f9;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(31, 111, 235, 0.08), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.7;
+    }
+
+    .page {
+      width: min(100%, 980px);
+      margin: 0 auto;
+      padding: 48px 20px 72px;
+    }
+
+    article {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: clamp(36px, 7vw, 76px);
+      border-bottom: 1px solid var(--border);
+      background:
+        linear-gradient(135deg, rgba(31, 111, 235, 0.1), rgba(255, 255, 255, 0.75)),
+        var(--paper);
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--accent);
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--heading);
+      font-size: clamp(2.3rem, 7vw, 4.7rem);
+      line-height: 0.98;
+      letter-spacing: -0.06em;
+      max-width: 860px;
+    }
+
+    .subtitle {
+      margin: 26px 0 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: clamp(1.06rem, 2vw, 1.25rem);
+    }
+
+    .meta {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .quote {
+      margin: 34px 0 0;
+      padding: 24px 28px;
+      background: var(--quote-bg);
+      border-left: 5px solid var(--accent);
+      border-radius: 16px;
+      color: var(--heading);
+      font-size: 1.08rem;
+    }
+
+    .quote cite {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-style: normal;
+      font-size: 0.95rem;
+    }
+
+    .content { padding: clamp(28px, 6vw, 70px); }
+    section { margin-top: 54px; }
+    section:first-child { margin-top: 0; }
+
+    h2 {
+      margin: 0 0 18px;
+      color: var(--heading);
+      font-size: clamp(1.65rem, 3vw, 2.35rem);
+      line-height: 1.15;
+      letter-spacing: -0.035em;
+    }
+
+    h3 {
+      margin: 34px 0 14px;
+      color: var(--heading);
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 0 0 20px;
+      font-size: 1.06rem;
+    }
+
+    strong { color: var(--heading); }
+
+    .callout {
+      margin: 30px 0;
+      padding: 24px 26px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(31, 111, 235, 0.16);
+      border-radius: 18px;
+    }
+
+    .callout p:last-child { margin-bottom: 0; }
+
+    .taxonomy {
+      display: grid;
+      gap: 18px;
+      margin: 28px 0;
+    }
+
+    .taxonomy-card {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #fcfcfd;
+    }
+
+    .taxonomy-card h3 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 1.08rem;
+    }
+
+    .taxonomy-card p { margin-bottom: 0; }
+
+    .threshold-list,
+    .rule-list {
+      margin: 24px 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 16px;
+    }
+
+    .threshold-list li,
+    .rule-list li {
+      padding: 18px 20px;
+      border-left: 4px solid var(--accent);
+      background: #f8fafc;
+      border-radius: 14px;
+    }
+
+    .threshold-list strong,
+    .rule-list strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    pre {
+      margin: 28px 0;
+      padding: 24px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 18px;
+      font-size: 0.94rem;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    p code,
+    li code {
+      padding: 0.15rem 0.35rem;
+      background: #eef2f7;
+      border-radius: 6px;
+      color: #0f172a;
+      font-size: 0.94em;
+    }
+
+    .math {
+      margin: 26px 0;
+      padding: 20px;
+      overflow-x: auto;
+      background: #fbfdff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .closing {
+      margin-top: 64px;
+      padding-top: 34px;
+      border-top: 1px solid var(--border);
+    }
+
+    footer {
+      padding: 28px clamp(28px, 6vw, 70px);
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.92rem;
+      background: #fbfbfc;
+    }
+
+    @media (min-width: 760px) {
+      .taxonomy { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .page { padding: 18px 12px 36px; }
+      article { border-radius: 18px; }
+      .hero, .content { padding-left: 22px; padding-right: 22px; }
+      pre { margin-left: -4px; margin-right: -4px; padding: 18px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <article>
+      <header class="hero">
+        <p class="eyebrow">Machine Learning · Model Monitoring · Distribution Shift</p>
+        <h1>The Model That Cried 200 OK: Trading I.I.D. Ideals for Production Reality</h1>
+        <p class="subtitle">
+          A practical look at what happens when production data stops behaving like training data,
+          and why healthy APIs can still serve deeply unhealthy predictions.
+        </p>
+        <p class="meta">December 15, 2025 · 9 min read</p>
+
+        <blockquote class="quote">
+          “In theory, there is no difference between theory and practice. In practice, there is.”
+          <cite>— Yogi Berra</cite>
+        </blockquote>
+      </header>
+
+      <div class="content">
+        <section>
+          <p>
+            Machine learning is built on a simple promise: if the future looks like the past, we can predict it.
+          </p>
+
+          <p>
+            To make this work, most models are trained under a quiet assumption—one so fundamental that textbooks
+            introduce it on page three and then politely forget it ever existed. It is the assumption that data points
+            are <strong>Independent and Identically Distributed</strong> (<strong>I.I.D.</strong>).
+          </p>
+
+          <p>
+            It is a beautiful mathematical cornerstone. But I.I.D. is not a law of nature; it is a convenience.
+            It is also one of the first assumptions that production systems silently violate, usually right after
+            you have closed your laptop for the weekend. And when that happens, the real danger is not that the model
+            crashes. The danger is that it keeps running.
+          </p>
+        </section>
+
+        <section>
+          <h2>The Pristine World of I.I.D.</h2>
+
+          <p>
+            When we invoke I.I.D., we are making two massive claims: that our data points are independent—one row does
+            not influence the next—and identically distributed—past, present, and future data all originate from the
+            same probability distribution, $P(X, Y)$.
+          </p>
+
+          <p>
+            This assumption is why we trust validation sets. It promises that a model succeeding in the lab will
+            naturally succeed in the wild.
+          </p>
+
+          <p>
+            But production is not a lab. Production is traffic spikes, broken upstream pipelines, economic shocks,
+            UI redesigns, and whatever happened on TikTok this week. As Chip Huyen points out, real-world data is
+            non-stationary by default. The $P(X, Y)$ you trained on yesterday is already evolving today.
+          </p>
+
+          <p>
+            I.I.D. is a laboratory baseline—a controlled condition that lets us train a model on Monday and hope the
+            world holds still until Friday. When the world shifts, our monitoring hits a blind spot. Traditional
+            software throws errors. ML just keeps serving predictions—wrong ones.
+          </p>
+        </section>
+
+        <section>
+          <h2>Software Fails Loudly, ML Fails Quietly</h2>
+
+          <p>This is where ML engineering parts ways with traditional software engineering.</p>
+
+          <p>
+            When a traditional service breaks, it tends to break loudly. A null pointer exception. A failed health
+            check. A 500 propagating up the stack. PagerDuty wakes someone up. The on-call engineer reads a stack
+            trace, locates line 45, and ships a fix. The system tells you it is broken. The system screams.
+          </p>
+
+          <p>Machine learning systems do not do this.</p>
+
+          <p>
+            When the input distribution drifts, your model does not raise an exception. It does not return a NaN.
+            It does not log a warning. It returns a perfectly well-formed prediction—a float between 0 and 1, a class
+            label, a recommendation—with high confidence and zero indication that anything has gone wrong. The API
+            returns 200 OK. The dashboards stay a comforting, verdant green. The model is working, in the narrow sense
+            that tensors are flowing through it and numbers are coming out the other side—much like a GPS is technically
+            working when it routes you into a lake.
+          </p>
+
+          <p>
+            This is what Rabanser and colleagues at Amazon were getting at in their paper
+            <em>Failing Loudly: An Empirical Study of Methods for Detecting Dataset Shift</em>. Their thesis is that
+            ML systems, left to their own devices, fail quietly—and that we need explicit machinery to make them fail
+            loudly, the way the rest of our infrastructure does. Without that machinery, model degradation surfaces not
+            as a crash, but as a slow, mysterious decay in business metrics—quiet enough to evade engineering, yet
+            expensive enough to eventually summon finance.
+          </p>
+
+          <p>It helps to have a taxonomy here, because distribution shift comes in several flavors:</p>
+
+          <div class="taxonomy">
+            <div class="taxonomy-card">
+              <h3>Covariate shift</h3>
+              <p>
+                $P(X)$ changes but $P(Y|X)$ stays the same. The inputs we see have shifted, but the underlying
+                relationship between inputs and outputs has not. A credit model trained mostly on urban applicants now
+                sees a flood of rural ones—the population changed, but the risk relationship did not.
+              </p>
+            </div>
+
+            <div class="taxonomy-card">
+              <h3>Label shift</h3>
+              <p>
+                The mirror image, where $P(Y)$ changes while $P(X|Y)$ holds. The base rate of fraud doubles, even though
+                fraudulent transactions still look the same as before.
+              </p>
+            </div>
+
+            <div class="taxonomy-card">
+              <h3>Concept drift</h3>
+              <p>
+                The nasty one, where $P(Y|X)$ itself changes. The same input now means something different. A user who
+                clicked five articles in a session used to be highly engaged; post-redesign, that is average behavior.
+                The features did not change. Their meaning did.
+              </p>
+            </div>
+          </div>
+
+          <p>
+            These shifts demand different responses. But all of them share the same failure mode:
+            <strong>silent, confident, wrong</strong>.
+          </p>
+        </section>
+
+        <section>
+          <h2>Engineering for a Moving World</h2>
+
+          <p>So what do we actually do about it?</p>
+
+          <p>
+            The first move is to stop treating training as the finish line. As Chip Huyen points out, training is merely
+            the beginning of a model’s lifecycle. Most of the engineering work happens after deployment: monitoring,
+            alerting, retraining, rollback.
+          </p>
+
+          <div class="callout">
+            <p>
+              <strong>Code rusts slowly, but models rot immediately.</strong> In traditional software, you write a
+              function once and it works until the requirements change. In ML, you train a model once, and it begins
+              degrading the second it hits production.
+            </p>
+          </div>
+
+          <p>
+            A useful starting point is to monitor inputs, not just outputs. Waiting for accuracy to drop is too late,
+            because accuracy requires ground-truth labels, which often arrive days or weeks after the prediction. By the
+            time offline evaluation tells you the model has degraded, the damage is done.
+          </p>
+
+          <p>
+            Instead, we monitor the distribution of the features going into the model in real time. If today’s traffic
+            looks meaningfully different from the training data, we have our early warning. To measure this, the industry
+            relies heavily on two metrics: <strong>Kullback-Leibler (KL) divergence</strong> and the
+            <strong>Population Stability Index (PSI)</strong>.
+          </p>
+        </section>
+
+        <section>
+          <h2>KL Divergence: The Information-Theoretic View</h2>
+
+          <p>
+            It calculates how much information you lose when you try to describe today’s messy reality using yesterday’s
+            assumptions. If we have our training data distribution ($P$) and our current production data ($Q$), the
+            formula looks like this:
+          </p>
+
+          <div class="math">
+            $$D_{KL}(P \| Q) = \sum_i P(i) \log\frac{P(i)}{Q(i)}$$
+          </div>
+
+          <p>
+            The intuition here is elegant: if production matches training exactly, every term becomes
+            $P(i) \times \log(1) = 0$, and the divergence is zero. There is no surprise. But the logarithm makes this
+            metric hyper-sensitive to disappearances. If a feature value was common in training ($P$ is high) but
+            vanishes in production ($Q$ is tiny), the metric spikes. It is specifically designed to catch that “we used
+            to see this regularly and now we do not” signal.
+          </p>
+
+          <p>
+            There are just two catches. First, KL is asymmetric—measuring from $P$ to $Q$ is not the same as $Q$ to $P$.
+            Second, if $Q(i)$ hits absolute zero, the math explodes. In production, you either patch this by adding a
+            tiny epsilon to every bin, or you use its more robust cousin.
+          </p>
+        </section>
+
+        <section>
+          <h2>PSI: The Pragmatic Cousin</h2>
+
+          <p>
+            If KL Divergence is the academic theorist, PSI is the grizzled industry veteran. It is essentially a
+            symmetrized, crash-proof version of KL divergence:
+          </p>
+
+          <div class="math">
+            $$\text{PSI} = \sum_i (P_i - Q_i) \log\frac{P_i}{Q_i}$$
+          </div>
+
+          <p>
+            Born out of the high-stakes world of credit risk modeling, PSI does not just give you a number; it gives you
+            a playbook. Over decades, it has hardened into an industry standard with clear rules of thumb:
+          </p>
+
+          <ul class="threshold-list">
+            <li><strong>Below 0.1</strong>The distribution is stable. You can sleep soundly.</li>
+            <li><strong>0.1 to 0.25</strong>Yellow flag. Something is shifting.</li>
+            <li><strong>Above 0.25</strong>Red flag. The population has fundamentally changed.</li>
+          </ul>
+
+          <p>
+            These thresholds are not laws of nature. They are heuristics inherited from decades of credit scoring. But
+            they give teams a shared vocabulary, which matters far more than mathematical purity when you are trying to
+            convince an incident responder that a shifting distribution is actually an emergency.
+          </p>
+        </section>
+
+        <section>
+          <h2>A Minimal Implementation</h2>
+
+          <p>
+            Here is a minimal implementation, adapted from patterns teams at Evidently AI and Arize AI have written
+            about extensively:
+          </p>
+
+<pre><code>import numpy as np
+
+def calculate_psi(reference: np.ndarray, current: np.ndarray,
+                  bins: int = 10, epsilon: float = 1e-4) -&gt; float:
+    &quot;&quot;&quot;
+    Population Stability Index between a reference and current distribution.
+    &quot;&quot;&quot;
+    # Build bin edges from the reference distribution's quantiles
+    quantiles = np.linspace(0, 1, bins + 1)
+    bin_edges = np.quantile(reference, quantiles)
+    bin_edges[0], bin_edges[-1] = -np.inf, np.inf  # absorb tail values
+
+    ref_counts, _ = np.histogram(reference, bins=bin_edges)
+    cur_counts, _ = np.histogram(current, bins=bin_edges)
+
+    # Convert to probabilities, smoothing zeros to avoid log(0)
+    ref_pct = ref_counts / len(reference) + epsilon
+    cur_pct = cur_counts / len(current) + epsilon
+
+    psi_per_bin = (ref_pct - cur_pct) * np.log(ref_pct / cur_pct)
+    return float(np.sum(psi_per_bin))
+
+
+def calculate_kl_divergence(reference: np.ndarray, current: np.ndarray,
+                            bins: int = 10, epsilon: float = 1e-4) -&gt; float:
+    &quot;&quot;&quot;
+    KL divergence D_KL(reference || current), binned the same way.
+    &quot;&quot;&quot;
+    quantiles = np.linspace(0, 1, bins + 1)
+    bin_edges = np.quantile(reference, quantiles)
+    bin_edges[0], bin_edges[-1] = -np.inf, np.inf
+
+    ref_counts, _ = np.histogram(reference, bins=bin_edges)
+    cur_counts, _ = np.histogram(current, bins=bin_edges)
+
+    p = ref_counts / len(reference) + epsilon
+    q = cur_counts / len(current) + epsilon
+
+    return float(np.sum(p * np.log(p / q)))</code></pre>
+
+          <p>
+            A few details that tripped me up the first time I implemented this, which rarely show up in tutorials:
+          </p>
+
+          <ul class="rule-list">
+            <li>
+              <strong>Bin from the reference, score the current.</strong>
+              Define your bin edges once, from training data, and reuse them forever. If you re-quantile every batch,
+              you are measuring how the bins shifted, not how the data shifted. It is a subtle bug that can quietly
+              invalidate months of monitoring.
+            </li>
+            <li>
+              <strong>Smooth your zeros.</strong>
+              That epsilon is not optional. Without it, the first time production sees a value outside the training
+              range, your metric returns infinity and your alerting system loses its mind.
+            </li>
+            <li>
+              <strong>Compute per feature, not on the prediction alone.</strong>
+              Monitoring only the output distribution is necessary but not sufficient. By the time the output shifts,
+              the cause is already upstream. PSI on each input feature gives you a triangulation that helps with root
+              cause analysis.
+            </li>
+            <li>
+              <strong>Pick a sensible window.</strong>
+              A 24-hour rolling window is typical for high-volume systems; a 7-day window for slower ones. Too short,
+              and you will alert on every weekday-versus-weekend cycle. Too long, and you will miss real shifts until
+              they are catastrophic.
+            </li>
+          </ul>
+        </section>
+
+
+        <section class="closing">
+          <h2>Trading Silence for Visibility</h2>
+
+          <p>
+            A monitoring layer built on PSI and KL divergence does not fix distribution shift. Nothing fixes distribution
+            shift, because the world insists on changing whether your model is ready or not. What it buys you is
+            visibility—the ability to see a problem when it starts, instead of when it has already cost you a quarter of
+            revenue.
+          </p>
+
+          <p>
+            That is the same trade traditional software engineers made decades ago when they built logging frameworks
+            and metrics dashboards. ML engineering is still, in many organizations, where backend engineering was in
+            2005: heroically deployed, optimistically monitored, and one bad week away from a public incident.
+          </p>
+
+          <p>
+            The teams I have seen handle this well treat their feature distributions the way SREs treat latency
+            percentiles. They define SLOs on PSI. They have runbooks for what to do when a feature exceeds 0.25. They
+            retrain on cadence and on signal, and they are explicit about which one they are doing and why. The point is
+            to make their models fail loudly—because the alternative is letting models keep producing confident,
+            beautifully typed predictions while quietly being wrong.
+          </p>
+
+          <p>
+            In theory, the training and production distributions are the same. In practice, the world drifts, users
+            change, incentives evolve, and data moves underneath us. The goal of ML engineering is not to pretend this
+            instability does not exist, but to build systems resilient enough to survive it. As Yogi Berra warned us from
+            the very beginning: in theory, there is no difference between theory and practice. In practice, there is.
+          </p>
+        </section>
+         <section>
+          <h2>Further Reading</h2>
+          <ul class="rule-list">
+            <li>
+              <strong>Chip Huyen, Designing Machine Learning Systems</strong> — particularly the chapters on data distribution shifts and monitoring & observability.
+            </li>
+            <li>
+              <strong>Stephan Rabanser, Stephan Günnemann, and Zachary Lipton, Failing Loudly: An Empirical Study of Methods for Detecting Dataset Shift (NeurIPS 2019)</strong>
+            </li>
+            <li>
+              <strong>The Evidently AI and Arize AI engineering blogs</strong> — for concrete, mathematically rigorous walkthroughs of drift detection in production.
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <footer>
+        <p>
+
+        </p>
+      </footer>
+    </article>
+  </main>
+</body>
+</html>

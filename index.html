@@ -437,6 +437,108 @@
             font-size: 0.95rem;
         }
 
+        /* Essays Section */
+        .essays {
+            background: var(--bg-primary);
+        }
+
+        .essays-list {
+            max-width: 800px;
+        }
+
+        .essay-card {
+            display: block;
+            padding: 2.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .essay-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: transform 0.4s ease;
+        }
+
+        .essay-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .essay-card:hover {
+            transform: translateX(8px);
+            border-color: var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .essay-meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .essay-date {
+            font-family: 'Instrument Serif', serif;
+            font-style: italic;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        .essay-tag {
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: 0.25rem 0.6rem;
+            background: var(--bg-primary);
+            border-radius: 2px;
+        }
+
+        .essay-card h3 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 0.75rem;
+        }
+
+        .essay-preview {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .essay-read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .essay-card:hover .essay-read-more {
+            color: var(--accent);
+        }
+
+        .essay-card:hover .essay-read-more svg {
+            transform: translateX(4px);
+        }
+
+        .essay-read-more svg {
+            transition: transform 0.3s ease;
+        }
+
         /* Contact Section */
         .contact {
             text-align: center;
@@ -625,7 +727,7 @@
                     <p class="sub-text">Focus: Deep Learning, NLP, Ethics</p>
                 </div>
                 <div class="education-block">
-                    <h4>MCIT in Computer Science</h4>
+                    <h4>Master of Applied Computer Science</h4>
                     <p>University of Pennsylvania</p>
                 </div>
                 <div class="education-block">
@@ -751,6 +853,30 @@
             </div>
         </div>
     </section>
+    <section id="essays" class="essays">
+    <div class="section-header fade-in">
+        <p class="section-label">Perspectives</p>
+        <h2 class="section-title">Writing</h2>
+    </div>
+    <div class="essays-list">
+        <a href="/blog/iid-assumption" class="essay-card fade-in">
+            <div class="essay-meta">
+                <span class="essay-date">2025</span>
+                <span class="essay-tag">Distribution Shift</span>
+            </div>
+            <h3>The I.I.D. Illusion and the Reality of Distribution Shift</h3>
+            <p class="essay-preview">
+                "In theory, there is no difference between theory and practice. In practice, there is." Machine learning is built on a promise: if the future looks like the past, we can predict it.
+            </p>
+            <span class="essay-read-more">
+                Read essay
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+            </span>
+        </a>
+    </div>
+</section>
 
     <section id="research" class="research">
         <div class="section-header fade-in">
