@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audrey | AI Engineer, RecSys & Applied Scientist</title>
+    <title>Audrey | AI Engineer, ML Engineer & Applied Scientist</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* YOUR ORIGINAL CSS REMAINS UNTOUCHED */
+
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #111111;
-            --text-primary: #f5f5f5;
+            --bg-primary: #090A0F;
+            --bg-secondary: #13151F;
+            --text-primary: #F4F4F9;
             --text-secondary: #a0a0a0;
-            --accent: #e8c872;
-            --accent-dim: #c4a85a;
+            --accent: #A970FF;
+            --accent-dim: #A970FF;
             --border: #2a2a2a;
             --card-bg: #161616;
         }
@@ -569,20 +569,20 @@
         <ul class="nav-links">
             <li><a href="#about">About</a></li>
             <li><a href="#projects">Engineering</a></li>
+            <li><a href="#essays">Perspectives</a></li>
             <li><a href="#research">Focus Areas</a></li>
             <li><a href="#contact">Contact</a></li>
         </ul>
     </nav>
 
     <section class="hero">
-        <span class="float-element float-1">ψ</span>
-        <span class="float-element float-2">∑</span>
+        <span class="float-element float-1">λ</span>
+        <span class="float-element float-2">∇</span>
         <div class="hero-content">
             <p class="hero-label">AI Engineer & Machine Learning Engineer</p>
-            <h1>Translating <em>behavior</em> into <em>algorithms</em></h1>
+            <h1>Architecting <em>systems</em> that <em>reason</em></h1>
             <p class="hero-description">
-                Building scalable, human-centric machine learning systems by bridging
-                computational social science with production-grade engineering.
+                I build the scalable infrastructure and applied AI pipelines that take machine learning out of the notebook and into the real world.
             </p>
             <div class="hero-cta">
                 <a href="#projects" class="btn btn-primary">View Projects</a>
@@ -599,12 +599,11 @@
         <div class="about-grid">
             <div class="about-text fade-in">
                 <p>
-                 I am an AI Engineer combining 6+ years of production software experience with advanced research in Artificial Intelligence.
-                 Currently completing my MSE at UPenn, I bridge the gap between theoretical models and scalable applications.
-                 My engineering philosophy is simple: a model is only as good as the system that serves it.
-                 I leverage my background in Java and Distributed Systems to build robust ML pipelines, while applying Computational Social Science
-                 principles to ensure recommendations are ethical, relevant, and human-centric.
-                </p>
+            I am an Applied AI Engineer who builds the architectures that allow machine learning to thrive in production. Drawing on over seven years of combined experience across software engineering, data science, and applied research, I specialize in bridging the gap between theoretical models and scalable applications.
+        </p>
+        <p>
+            Currently completing my MSE in Artificial Intelligence, my engineering philosophy is simple: a model is only as good as the system that serves it. I leverage my foundation in distributed systems to architect robust ML pipelines, integrating advanced techniques like Knowledge Graphs and RAG to build intelligent systems that are reliable, context-aware, and performant at scale.
+        </p>
                 <div class="skills-list">
                     <span class="skill-tag" style="border-color: var(--accent);">Python</span>
                     <span class="skill-tag" style="border-color: var(--accent);">Java</span>
@@ -638,7 +637,7 @@
         </div>
     </section>
 
-    <section id="projects" class="projects">
+     <section id="projects" class="projects">
         <div class="section-header fade-in">
             <p class="section-label">Engineering Portfolio</p>
             <h2 class="section-title">Selected Projects</h2>
@@ -665,7 +664,7 @@
                     <span class="skill-tag">Sentence Transformers</span>
                     <span class="skill-tag">Cytoscape.js</span>
                 </div>
-                <a href="https://github.com/audreybonee/repo-chat" class="project-link">
+            <a href="https://github.com/audreybonee/repo-chat" class="project-link" target="_blank" rel="noopener noreferrer">
                     View Code
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -673,18 +672,77 @@
                 </a>
             </div>
             <div class="project-card fade-in">
-                <p class="project-category">Data Science Tooling</p>
-                <h3>Cognitive Profiling Tool</h3>
+                <p class="project-category">Neuro-Symbolic AI & RecSys</p>
+                <h3>Fathom: Context-Aware Book Recommender</h3>
                 <p>
-                    Implemented a psychometric assessment tool in Python that moves beyond simple surveys
-                    to model epistemic assertiveness. Visualizes data clusters to predict user behavior patterns.
+                    Traditional recommender systems reinforce narrow patterns through collaborative filtering.
+                    I built a <strong>neuro-symbolic recommendation engine</strong> that combines vector-based semantic search
+                    with a <strong>knowledge graph</strong> and <strong>spreading activation network</strong> to surface
+                    structurally surprising yet thematically coherent recommendations.
+                </p>
+                <p style="margin-top: 1rem;">
+                    <strong>Architecture:</strong> A two-stage pipeline — OpenAI embeddings matched via ChromaDB seed a spreading activation
+                    process over a heterogeneous NetworkX graph (~90 curated ontology concepts). The system traces conceptual paths
+                    between seed and discovered items to generate human-readable explanations.
                 </p>
                 <div class="project-tech">
-                    <span>Python</span>
-                    <span>Data Viz</span>
-                    <span>Statistical Modeling</span>
+                    <span class="skill-tag">Python</span>
+                    <span class="skill-tag">ChromaDB</span>
+                    <span class="skill-tag">NetworkX</span>
+                    <span class="skill-tag">Spreading Activation</span>
+                    <span class="skill-tag">LangChain</span>
+                    <span class="skill-tag">Gradio</span>
                 </div>
-                <a href="https://github.com/audreybonee/psycho-assessment" class="project-link">
+                <a href="https://github.com/audreybonee/context-aware-recommender" class="project-link" target="_blank" rel="noopener noreferrer">
+                    View Code
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                </a>
+            </div>
+            <div class="project-card fade-in">
+                <p class="project-category">Behavioral AI & Fine-Tuning</p>
+                <h3>Cognitive Profile Fine-Tuning</h3>
+                <p>
+                    Can you encode a cognitive style into model weights? This project investigates whether <strong>LoRA fine-tuning</strong>
+                    can teach LLMs (LLaMA 3.1 8B) to make decisions consistent with a specific cognitive profile — not through prompting,
+                    but through <strong>learned behavioral patterns</strong> that transfer across domains.
+                </p>
+                <p style="margin-top: 1rem;">
+                    <strong>Case study:</strong> Prospect Theory (Kahneman & Tversky, 1979) — encoding loss aversion, certainty effects,
+                    framing sensitivity, and status quo bias. The profile has precise, measurable deviations from rationality,
+                    making it ideal for validation: we know exactly what the <em>right wrong answer</em> looks like.
+                </p>
+                <div class="project-tech">
+                    <span class="skill-tag">Python</span>
+                    <span class="skill-tag">LoRA / PEFT</span>
+                    <span class="skill-tag">LLaMA 3.1</span>
+                    <span class="skill-tag">Behavioral Economics</span>
+                    <span class="skill-tag">PyTorch</span>
+                </div>
+                <a href="https://github.com/audreybonee/cognitive-profile-finetuning" class="project-link" target="_blank" rel="noopener noreferrer">
+                    View Code
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                </a>
+            </div>
+            <div class="project-card fade-in">
+                <p class="project-category">Interpretability & AI Safety</p>
+                <h3>Neural Lens: LLM Interpretability Dashboard</h3>
+                <p>
+                    An interpretability dashboard for <strong>auditing LLM agent reasoning</strong> and exploring model internals.
+                    Combines agent transparency — tracing how models arrive at decisions — with lightweight
+                    <strong>mechanistic interpretability</strong> tools to surface hidden patterns in activations and attention.
+                </p>
+                <div class="project-tech">
+                    <span class="skill-tag">Python</span>
+                    <span class="skill-tag">PyTorch</span>
+                    <span class="skill-tag">Transformer Internals</span>
+                    <span class="skill-tag">Interpretability</span>
+                    <span class="skill-tag">Visualization</span>
+                </div>
+                <a href="https://github.com/audreybonee/neural-lens" class="project-link" target="_blank" rel="noopener noreferrer">
                     View Code
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -753,7 +811,7 @@
     </section>
 
     <footer>
-        <p>© 2025 Audrey. Engineered with intention.</p>
+        <p>© 2026 Audrey. Engineered with intention.</p>
         <p>Hosted on GitHub Pages</p>
     </footer>
 
